@@ -7,7 +7,7 @@ pipeline {
         GIT_REPO = 'https://github.com/Gibwanjau/gallery.git' 
         GIT_BRANCH = 'main' 
         GIT_CREDENTIALS_ID = 'git-token'
-    }
+        EMAIL_RECIPIENT = 'gibson.wanjau1@student.moringaschool.com'
 
     stages {
         stage('Checkout') {
@@ -20,9 +20,13 @@ pipeline {
             }
         }
 
-        stage('Install Dependencies') {
+        stage('Install Node and Dependencies') {
             steps {
                 script {
+                    // Install Node.js and npm (if not installed)
+                    sh 'curl -sL https://deb.nodesource.com/setup_14.x | bash -'
+                    sh 'apt-get install -y nodejs'
+                    
                     // Install npm dependencies
                     sh 'npm install'
                 }
@@ -43,6 +47,15 @@ pipeline {
                 script {
                     // Run tests
                     sh 'npm test'
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                script {
+                    // Deploy the application (this is a placeholder; replace with actual deployment commands)
+                    echo 'Deploying the application...'
                 }
             }
         }
@@ -96,6 +109,11 @@ pipeline {
         }
         failure {
             script {
+                // Send email notification on failure
+                mail to: EMAIL_RECIPIENT,
+                     subject: "Build #${env.BUILD_NUMBER} Failed",
+                     body: "The build failed. Check Jenkins for more details."
+                
                 slackSend(channel: SLACK_CHANNEL,
                            message: "Build #${env.BUILD_NUMBER} failed!",
                            tokenCredentialId: SLACK_CREDENTIALS_ID)
